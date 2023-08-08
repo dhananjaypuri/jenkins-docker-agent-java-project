@@ -36,6 +36,7 @@ pipeline {
                 ls
                 ls target/
                 docker build -t ${IMAGE_NAME} .
+                docker images
                 '''
             }
         }
