@@ -16,22 +16,26 @@ pipeline {
                 sh 'ls'
             }
         }
-        stage('Build'){
+        stage('Build By Maven'){
 
             steps {
                 echo "Code Build Stage"
                 sh 'mvn install'
             }
         }
-        stage('Code Push'){
+        stage('Build Image'){
+            environment {
+                IMAGE_NAME = "dhananjaypuri/tomcat:${BUILD_ID}"
+                DOCKER_UNAME = "dhananjaypuri"
+                DOCKER_PASS = credentials('docker_secret_pass')
+            }
 
             steps {
                 echo "Code Push Stage"
-                sh 'git --version'
                 sh '''
                 ls
                 ls target/
-                
+                echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
                 '''
             }
         }
@@ -39,4 +43,3 @@ pipeline {
     }
 
 }
-
