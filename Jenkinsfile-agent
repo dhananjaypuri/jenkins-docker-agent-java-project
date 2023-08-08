@@ -35,7 +35,7 @@ pipeline {
                 sh '''
                 ls
                 ls target/
-                echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
+                docker build -t ${IMAGE_NAME} .
                 '''
             }
         }
