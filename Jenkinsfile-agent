@@ -55,6 +55,7 @@ pipeline {
                 docker build -t ${IMAGE_NAME} .
                 docker images
                 echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
+                docker image push ${IMAGE_NAME}
                 '''
             }
         }
