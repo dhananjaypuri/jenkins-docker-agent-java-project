@@ -52,6 +52,10 @@ pipeline {
                 sh '''
                 ls
                 ls target/
+                if docker image rmi -f $(docker image ls | grep dhananjaypuri/tomcat | awk '{print $3}')
+                then
+                    echo "Image cleaned"
+                fi
                 docker build -t ${IMAGE_NAME} .
                 docker images
                 echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
