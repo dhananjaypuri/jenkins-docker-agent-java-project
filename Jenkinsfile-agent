@@ -1,47 +1,58 @@
 pipeline {
+    agent any
 
-    agent {
-        docker {
-            image 'dhananjaypuri/mvn-git-jenkins-agent:latest'
-            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
-        }
+    environment {
+        DOCKER_UNAME = "dhananjaypuri"
+        DOCKER_PASS = credentials('docker_secret_pass')
+        IMAGE_NAME = "${DOCKER_UNAME}/flaskapptest:${BUILD_ID}"
     }
 
     stages {
-
-        stage('Code Checkout'){
-
+        stage('Code Checkout')
+        {
             steps {
-                echo "Code Checkout Stage"
-                sh 'ls'
+                echo "Code Checkout Stage Successfull"
             }
         }
-        stage('Build By Maven'){
+
+        stage('Image Build Stage')
+
+        {   
 
             steps {
-                echo "Code Build Stage"
-                sh 'mvn install'
-            }
-        }
-        stage('Build Image'){
-            environment {
-                IMAGE_NAME = "dhananjaypuri/tomcat:${BUILD_ID}"
-                DOCKER_UNAME = "dhananjaypuri"
-                DOCKER_PASS = credentials('docker_secret_pass')
-            }
-
-            steps {
-                echo "Code Push Stage"
+                echo "Build Image: ${IMAGE_NAME}"
                 sh '''
-                ls
-                ls target/
-                docker build -t ${IMAGE_NAME} .
-                docker images
+                echo "Cleaning Images"
+
+                if docker rmi $(docker images | grep dhananjaypuri/flaskapptest | awk '{print $3}')
+                then
+                    echo "Images cleaned"
+                fi
                 echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
+                docker build -t ${IMAGE_NAME} .
                 '''
             }
         }
 
+        stage('Image Push Stage')
+        {
+            input {
+                ok "Yes, Push It !!"
+                message "Should we continue?"
+            }
+            steps {
+                echo "Pushing Image: ${IMAGE_NAME}"
+                sh '''
+                echo ${DOCKER_PASS} | docker login -u ${DOCKER_UNAME} --password-stdin
+                docker image push ${IMAGE_NAME}
+                '''
+            }
+        }
     }
 
+    post {
+        failure {
+            echo "Build Failed"
+        }
+    }
 }
