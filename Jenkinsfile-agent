@@ -16,13 +16,30 @@ pipeline {
                 sh 'ls'
             }
         }
+
         stage('Build By Maven'){
+
 
             steps {
                 echo "Code Build Stage"
                 sh 'mvn install'
             }
         }
+
+        stage('Static Code Analysis'){
+
+            environment {
+
+                SONAR_URL = "http://54.221.66.251:9000/"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
+                    sh 'mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+            }
+
+            }
+        }
+
         stage('Build Image'){
             environment {
                 IMAGE_NAME = "dhananjaypuri/tomcat:${BUILD_ID}"
